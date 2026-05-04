@@ -1,0 +1,9 @@
+# .NET
+bin/
+obj/
+*.user
+
+# Nunca commitar arquivos com segredos (API Keys)
+appsettings*.json
+
+.vs
