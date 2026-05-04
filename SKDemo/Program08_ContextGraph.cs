@@ -1,28 +1,28 @@
-// ============================================================
-//  Program08 � Context Graph (Grafo de Contexto)
+﻿// ============================================================
+//  Program08 — Context Graph (Grafo de Contexto)
 // ============================================================
 // Este exemplo demonstra o conceito de Context Graph:
 // 
-// Um Context Graph � uma t�cnica de representa��o de conhecimento
-// onde decis�es, pol�ticas, exce��es, precedentes e evid�ncias
-// s�o modelados como n�s conectados em um grafo temporal.
+// Um Context Graph é uma técnica de representação de conhecimento
+// onde decisões, políticas, exceções, precedentes e evidências
+// são modelados como nós conectados em um grafo temporal.
 //
 // Diferentemente de sistemas de registro (que capturam O QUE aconteceu),
-// um Context Graph captura O PORQU�, transformando racioc�nio
-// institucional em estrutura consult�vel e leg�vel por m�quina.
+// um Context Graph captura O PORQUÊ, transformando raciocínio
+// institucional em estrutura consultável e legível por máquina.
 //
-// Caracter�sticas principais:
-// 1. N�s de primeira classe para decis�es, pol�ticas, precedentes
-// 2. Validade temporal em cada aresta (fatos superados s�o invalidados)
-// 3. Rastreamento de proced�ncia e cadeias causais
-// 4. Mem�ria persistente entre sess�es
+// Características principais:
+// 1. Nós de primeira classe para decisões, políticas, precedentes
+// 2. Validade temporal em cada aresta (fatos superados são invalidados)
+// 3. Rastreamento de procedência e cadeias causais
+// 4. Memória persistente entre sessões
 //
-// Neste exemplo, criamos um sistema de aprova��o de descontos
+// Neste exemplo, criamos um sistema de aprovação de descontos
 // onde um agente de IA pode:
-// - Consultar pol�ticas vigentes vs. expiradas
+// - Consultar políticas vigentes vs. expiradas
 // - Identificar precedentes relevantes
-// - Raciocinar atrav�s de cadeias de decis�o multi-hop
-// - Distinguir entre pol�tica permanente e exce��o pontual
+// - Raciocinar através de cadeias de decisão multi-hop
+// - Distinguir entre política permanente e exceção pontual
 //
 // Uso:
 //   dotnet run -- 08 "sua pergunta sobre descontos"
@@ -30,7 +30,7 @@
 // Exemplos:
 //   dotnet run -- 08 "Posso dar 15% de desconto para um cliente VIP?"
 //   dotnet run -- 08 "Por que aprovamos 20% de desconto na ordem #1234?"
-//   dotnet run -- 08 "Qual � a pol�tica atual de descontos para B2B?"
+//   dotnet run -- 08 "Qual é a política atual de descontos para B2B?"
 // ============================================================
 
 using Microsoft.SemanticKernel;
@@ -39,14 +39,16 @@ using Microsoft.SemanticKernel.Connectors.OpenAI;
 using System.ComponentModel;
 using System.Text.Json;
 
-// ?? Main Program ??????????????????????????????????????????
+Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+// ── Main Program ──────────────────────────────────────────
 var endpoint = "https://models.github.ai/inference";
 var credential = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
 var model = "openai/gpt-4o-mini";
 
 if (string.IsNullOrWhiteSpace(credential))
 {
-    Console.Error.WriteLine("Erro: vari�vel de ambiente GITHUB_TOKEN n�o configurada.");
+    Console.Error.WriteLine("Erro: variável de ambiente GITHUB_TOKEN não configurada.");
     Environment.Exit(1);
 }
 
@@ -61,27 +63,27 @@ var kernel = Kernel.CreateBuilder()
         httpClient: httpClient)
     .Build();
 
-// ?? Context Graph Plugin ????????????????????????????????????
-// Inicializar o grafo de contexto com dados hist�ricos
+// ── Context Graph Plugin ────────────────────────────────────
+// Inicializar o grafo de contexto com dados históricos
 var contextGraph = new ContextGraph();
 SeedContextGraph(contextGraph);
 
 // Registrar o plugin que permite consultar o grafo
 kernel.ImportPluginFromObject(new ContextGraphPlugin(contextGraph), "ContextGraph");
 
-// Obter pergunta do usu�rio (ou usar padr�o)
+// Obter pergunta do usuário (ou usar padrão)
 string userQuery = args.Length > 1
     ? string.Join(" ", args.Skip(1))
     : "Posso dar 15% de desconto para um cliente VIP?";
 
-Console.WriteLine("????????????????????????????????????????????????????????????");
-Console.WriteLine("?         Context Graph - Racioc�nio com Hist�rico         ?");
-Console.WriteLine("????????????????????????????????????????????????????????????");
+Console.WriteLine("╔══════════════════════════════════════════════════════════╗");
+Console.WriteLine("║         Context Graph - Raciocínio com Histórico         ║");
+Console.WriteLine("╚══════════════════════════════════════════════════════════╝");
 Console.WriteLine();
-Console.WriteLine($"?? Pergunta: {userQuery}");
+Console.WriteLine($"🤖 Pergunta: {userQuery}");
 Console.WriteLine();
 
-// ?? Configurar Auto Function Calling ???????????????????????
+// ── Configurar Auto Function Calling ───────────────────────
 var executionSettings = new OpenAIPromptExecutionSettings
 {
     ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions,
@@ -89,34 +91,34 @@ var executionSettings = new OpenAIPromptExecutionSettings
     MaxTokens = 1500
 };
 
-Console.WriteLine("???  Context Graph: Sistema inicializado");
-Console.WriteLine($"   - {contextGraph.GetAllNodes().Count()} n�s no grafo");
+Console.WriteLine("🕸️  Context Graph: Sistema inicializado");
+Console.WriteLine($"   - {contextGraph.GetAllNodes().Count()} nós no grafo");
 Console.WriteLine($"   - {contextGraph.GetAllEdges().Count()} arestas temporais");
 Console.WriteLine();
-Console.WriteLine("?? Ferramentas dispon�veis:");
-Console.WriteLine("   - QueryActivePolicies: Consulta pol�ticas vigentes");
+Console.WriteLine("🔧 Ferramentas disponíveis:");
+Console.WriteLine("   - QueryActivePolicies: Consulta políticas vigentes");
 Console.WriteLine("   - QueryPrecedents: Busca precedentes relevantes");
-Console.WriteLine("   - TraceDecisionChain: Rastreia cadeia de decis�o");
+Console.WriteLine("   - TraceDecisionChain: Rastreia cadeia de decisão");
 Console.WriteLine("   - CheckPolicyValidity: Verifica validade temporal");
 Console.WriteLine();
 
-// ?? Executar com Auto Function Calling ?????????????????????
-Console.WriteLine("?? Processando solicita��o com Context Graph...");
+// ── Executar com Auto Function Calling ─────────────────────
+Console.WriteLine("💡 Processando solicitação com Context Graph...");
 Console.WriteLine();
 
 var chatHistory = new ChatHistory();
 chatHistory.AddSystemMessage(
-    "Voc� � um assistente de aprova��o de descontos que tem acesso a um Context Graph " +
-    "com hist�rico completo de decis�es, pol�ticas e precedentes da empresa. " +
-    "\n\nSempre que analisar uma solicita��o de desconto:" +
-    "\n1. Consulte as pol�ticas VIGENTES (n�o use pol�ticas expiradas)" +
+    "Você é um assistente de aprovação de descontos que tem acesso a um Context Graph " +
+    "com histórico completo de decisões, políticas e precedentes da empresa. " +
+    "\n\nSempre que analisar uma solicitação de desconto:" +
+    "\n1. Consulte as políticas VIGENTES (não use políticas expiradas)" +
     "\n2. Busque precedentes relevantes para o caso" +
-    "\n3. Rastreie as cadeias de decis�o quando necess�rio" +
-    "\n4. Explique CLARAMENTE o racioc�nio, citando:" +
-    "\n   - Qual pol�tica se aplica e desde quando est� vigente" +
-    "\n   - Se h� precedentes e se foram exce��es ou pol�tica permanente" +
-    "\n   - A cadeia causal que justifica a decis�o" +
-    "\n\nSeja preciso e transparente sobre a proced�ncia de cada recomenda��o."
+    "\n3. Rastreie as cadeias de decisão quando necessário" +
+    "\n4. Explique CLARAMENTE o raciocínio, citando:" +
+    "\n   - Qual política se aplica e desde quando está vigente" +
+    "\n   - Se há precedentes e se foram exceções ou política permanente" +
+    "\n   - A cadeia causal que justifica a decisão" +
+    "\n\nSeja preciso e transparente sobre a procedência de cada recomendação."
 );
 chatHistory.AddUserMessage(userQuery);
 
@@ -127,19 +129,19 @@ var response = await chat.GetChatMessageContentAsync(
     kernel: kernel
 );
 
-Console.WriteLine("?? Resposta do Assistente:");
-Console.WriteLine("?????????????????????????????????????????????????????????");
+Console.WriteLine("📝 Resposta do Assistente:");
+Console.WriteLine("─────────────────────────────────────────────────────────");
 Console.WriteLine(response.Content);
-Console.WriteLine("?????????????????????????????????????????????????????????");
+Console.WriteLine("─────────────────────────────────────────────────────────");
 Console.WriteLine();
 
-// ?? Demonstrar evolu��o temporal ????????????????????????????
-Console.WriteLine("?? Demonstrando consulta com evolu��o temporal...");
+// ── Demonstrar evolução temporal ────────────────────────────
+Console.WriteLine("🔄 Demonstrando consulta com evolução temporal...");
 Console.WriteLine();
 
 chatHistory.Add(response);
 chatHistory.AddUserMessage(
-    "Mostre-me como a pol�tica de descontos para B2B mudou ao longo do tempo"
+    "Mostre-me como a política de descontos para B2B mudou ao longo do tempo"
 );
 
 response = await chat.GetChatMessageContentAsync(
@@ -148,29 +150,29 @@ response = await chat.GetChatMessageContentAsync(
     kernel: kernel
 );
 
-Console.WriteLine("?? Resposta do Assistente:");
-Console.WriteLine("?????????????????????????????????????????????????????????");
+Console.WriteLine("📝 Resposta do Assistente:");
+Console.WriteLine("─────────────────────────────────────────────────────────");
 Console.WriteLine(response.Content);
-Console.WriteLine("?????????????????????????????????????????????????????????");
+Console.WriteLine("─────────────────────────────────────────────────────────");
 Console.WriteLine();
-Console.WriteLine("? Demo Context Graph conclu�da com sucesso!");
+Console.WriteLine("✨ Demo Context Graph concluída com sucesso!");
 
-// ?? Seed Context Graph ??????????????????????????????????????
+// ── Seed Context Graph ──────────────────────────────────────
 static void SeedContextGraph(ContextGraph graph)
 {
     var now = DateTime.UtcNow;
 
-    // ???????????????????????????????????????????????????????????
-    //  POL�TICAS DE DESCONTO
-    // ???????????????????????????????????????????????????????????
+    // ═══════════════════════════════════════════════════════════
+    //  POLÍTICAS DE DESCONTO
+    // ═══════════════════════════════════════════════════════════
 
-    // Pol�tica antiga de B2B (expirada)
+    // Política antiga de B2B (expirada)
     var oldB2BPolicy = graph.AddNode(new ContextNode
     {
         Id = "policy-b2b-2023",
         Type = NodeType.Policy,
-        Title = "Pol�tica B2B 2023",
-        Content = "Desconto m�ximo de 10% para clientes B2B sem aprova��o gerencial",
+        Title = "Política B2B 2023",
+        Content = "Desconto máximo de 10% para clientes B2B sem aprovação gerencial",
         Metadata = new Dictionary<string, object>
         {
             ["category"] = "discount",
@@ -179,13 +181,13 @@ static void SeedContextGraph(ContextGraph graph)
         }
     });
 
-    // Pol�tica atual de B2B (vigente)
+    // Política atual de B2B (vigente)
     var currentB2BPolicy = graph.AddNode(new ContextNode
     {
         Id = "policy-b2b-2024",
         Type = NodeType.Policy,
-        Title = "Pol�tica B2B 2024 (Atualizada)",
-        Content = "Desconto m�ximo de 15% para clientes B2B sem aprova��o. At� 25% com aprova��o de gerente regional.",
+        Title = "Política B2B 2024 (Atualizada)",
+        Content = "Desconto máximo de 15% para clientes B2B sem aprovação. Até 25% com aprovação de gerente regional.",
         Metadata = new Dictionary<string, object>
         {
             ["category"] = "discount",
@@ -195,13 +197,13 @@ static void SeedContextGraph(ContextGraph graph)
         }
     });
 
-    // Pol�tica VIP (vigente)
+    // Política VIP (vigente)
     var vipPolicy = graph.AddNode(new ContextNode
     {
         Id = "policy-vip-current",
         Type = NodeType.Policy,
-        Title = "Pol�tica VIP",
-        Content = "Clientes VIP podem receber at� 20% de desconto sem aprova��o adicional",
+        Title = "Política VIP",
+        Content = "Clientes VIP podem receber até 20% de desconto sem aprovação adicional",
         Metadata = new Dictionary<string, object>
         {
             ["category"] = "discount",
@@ -210,22 +212,22 @@ static void SeedContextGraph(ContextGraph graph)
         }
     });
 
-    // Conectar evolu��o de pol�ticas B2B
+    // Conectar evolução de políticas B2B
     graph.AddEdge(new ContextEdge
     {
         Id = "edge-b2b-supersedes",
         SourceId = currentB2BPolicy.Id,
         TargetId = oldB2BPolicy.Id,
         Type = EdgeType.Supersedes,
-        ValidFrom = now.AddMonths(-2), // Nova pol�tica h� 2 meses
+        ValidFrom = now.AddMonths(-2), // Nova política há 2 meses
         ValidUntil = null,
         Metadata = new Dictionary<string, object>
         {
-            ["reason"] = "Expans�o de competitividade no mercado B2B"
+            ["reason"] = "Expansão de competitividade no mercado B2B"
         }
     });
 
-    // Marcar pol�tica antiga como expirada
+    // Marcar política antiga como expirada
     graph.AddEdge(new ContextEdge
     {
         Id = "edge-b2b-old-expired",
@@ -233,20 +235,20 @@ static void SeedContextGraph(ContextGraph graph)
         TargetId = currentB2BPolicy.Id,
         Type = EdgeType.ExpiredBy,
         ValidFrom = now.AddYears(-1),
-        ValidUntil = now.AddMonths(-2), // V�lida at� 2 meses atr�s
+        ValidUntil = now.AddMonths(-2), // Válida até 2 meses atrás
         Metadata = new Dictionary<string, object>()
     });
 
-    // ???????????????????????????????????????????????????????????
-    //  DECIS�ES E PRECEDENTES
-    // ???????????????????????????????????????????????????????????
+    // ═══════════════════════════════════════════════════════════
+    //  DECISÕES E PRECEDENTES
+    // ═══════════════════════════════════════════════════════════
 
-    // Decis�o: Aprova��o excepcional de 20% para B2B
+    // Decisão: Aprovação excepcional de 20% para B2B
     var exceptionDecision = graph.AddNode(new ContextNode
     {
         Id = "decision-order-1234",
         Type = NodeType.Decision,
-        Title = "Aprova��o Ordem #1234 - Desconto 20%",
+        Title = "Aprovação Ordem #1234 - Desconto 20%",
         Content = "Aprovado desconto de 20% para TechCorp devido a contrato de volume anual de $500k",
         Metadata = new Dictionary<string, object>
         {
@@ -258,7 +260,7 @@ static void SeedContextGraph(ContextGraph graph)
         }
     });
 
-    // Evid�ncia da decis�o
+    // Evidência da decisão
     var evidence1234 = graph.AddNode(new ContextNode
     {
         Id = "evidence-contract-techcorp",
@@ -272,7 +274,7 @@ static void SeedContextGraph(ContextGraph graph)
         }
     });
 
-    // Conectar decis�o � evid�ncia
+    // Conectar decisão à evidência
     graph.AddEdge(new ContextEdge
     {
         Id = "edge-decision-evidence",
@@ -284,7 +286,7 @@ static void SeedContextGraph(ContextGraph graph)
         Metadata = new Dictionary<string, object>()
     });
 
-    // Conectar decis�o � pol�tica que foi excedida
+    // Conectar decisão à política que foi excedida
     graph.AddEdge(new ContextEdge
     {
         Id = "edge-decision-policy",
@@ -295,30 +297,30 @@ static void SeedContextGraph(ContextGraph graph)
         ValidUntil = null,
         Metadata = new Dictionary<string, object>
         {
-            ["reason"] = "Volume anual justifica exce��o � pol�tica padr�o"
+            ["reason"] = "Volume anual justifica exceção à política padrão"
         }
     });
 
-    // ?????????????????????????????????????????????????????????
+    // ─────────────────────────────────────────────────────────
 
-    // Decis�o: Nega��o de desconto excessivo
+    // Decisão: Negação de desconto excessivo
     var denialDecision = graph.AddNode(new ContextNode
     {
         Id = "decision-order-5678",
         Type = NodeType.Decision,
-        Title = "Nega��o Ordem #5678 - Desconto 30%",
-        Content = "Negado desconto de 30% para SmallBiz. Excede limites mesmo com aprova��o gerencial.",
+        Title = "Negação Ordem #5678 - Desconto 30%",
+        Content = "Negado desconto de 30% para SmallBiz. Excede limites mesmo com aprovação gerencial.",
         Metadata = new Dictionary<string, object>
         {
             ["orderId"] = "5678",
             ["customer"] = "SmallBiz",
             ["requestedDiscount"] = 30,
-            ["denier"] = "Jo�o Santos (Gerente Regional)",
+            ["denier"] = "João Santos (Gerente Regional)",
             ["date"] = now.AddDays(-15).ToString("yyyy-MM-dd")
         }
     });
 
-    // Conectar nega��o � pol�tica
+    // Conectar negação à política
     graph.AddEdge(new ContextEdge
     {
         Id = "edge-denial-policy",
@@ -329,19 +331,19 @@ static void SeedContextGraph(ContextGraph graph)
         ValidUntil = null,
         Metadata = new Dictionary<string, object>
         {
-            ["reason"] = "Desconto solicitado excede limite m�ximo com aprova��o (25%)"
+            ["reason"] = "Desconto solicitado excede limite máximo com aprovação (25%)"
         }
     });
 
-    // ?????????????????????????????????????????????????????????
+    // ─────────────────────────────────────────────────────────
 
-    // Precedente: Aprova��es VIP consistentes
+    // Precedente: Aprovações VIP consistentes
     var vipPrecedent = graph.AddNode(new ContextNode
     {
         Id = "precedent-vip-15-20",
         Type = NodeType.Precedent,
         Title = "Precedente: Descontos VIP 15-20%",
-        Content = "Hist�rico de 15 aprova��es de descontos entre 15-20% para clientes VIP nos �ltimos 6 meses",
+        Content = "Histórico de 15 aprovações de descontos entre 15-20% para clientes VIP nos últimos 6 meses",
         Metadata = new Dictionary<string, object>
         {
             ["count"] = 15,
@@ -350,7 +352,7 @@ static void SeedContextGraph(ContextGraph graph)
         }
     });
 
-    // Conectar precedente � pol�tica VIP
+    // Conectar precedente à política VIP
     graph.AddEdge(new ContextEdge
     {
         Id = "edge-precedent-policy",
@@ -362,17 +364,17 @@ static void SeedContextGraph(ContextGraph graph)
         Metadata = new Dictionary<string, object>()
     });
 
-    // ???????????????????????????????????????????????????????????
-    //  CADEIA CAUSAL: Por que mudamos a pol�tica B2B?
-    // ???????????????????????????????????????????????????????????
+    // ═══════════════════════════════════════════════════════════
+    //  CADEIA CAUSAL: Por que mudamos a política B2B?
+    // ═══════════════════════════════════════════════════════════
 
-    // Evid�ncia de mercado
+    // Evidência de mercado
     var marketEvidence = graph.AddNode(new ContextNode
     {
         Id = "evidence-market-analysis",
         Type = NodeType.Evidence,
-        Title = "An�lise de Mercado Q4/2023",
-        Content = "Concorrentes oferecem 15-20% de desconto padr�o para B2B. Perdemos 5 grandes contas.",
+        Title = "Análise de Mercado Q4/2023",
+        Content = "Concorrentes oferecem 15-20% de desconto padrão para B2B. Perdemos 5 grandes contas.",
         Metadata = new Dictionary<string, object>
         {
             ["lostAccounts"] = 5,
@@ -380,13 +382,13 @@ static void SeedContextGraph(ContextGraph graph)
         }
     });
 
-    // Decis�o de mudan�a de pol�tica
+    // Decisão de mudança de política
     var policyChangeDecision = graph.AddNode(new ContextNode
     {
         Id = "decision-policy-change-2024",
         Type = NodeType.Decision,
-        Title = "Decis�o: Atualizar Pol�tica B2B",
-        Content = "Aprovada atualiza��o da pol�tica B2B para manter competitividade",
+        Title = "Decisão: Atualizar Política B2B",
+        Content = "Aprovada atualização da política B2B para manter competitividade",
         Metadata = new Dictionary<string, object>
         {
             ["approver"] = "Conselho Executivo",
@@ -394,7 +396,7 @@ static void SeedContextGraph(ContextGraph graph)
         }
     });
 
-    // Conectar evid�ncia -> decis�o -> nova pol�tica
+    // Conectar evidência -> decisão -> nova política
     graph.AddEdge(new ContextEdge
     {
         Id = "edge-evidence-to-decision",
@@ -418,28 +420,28 @@ static void SeedContextGraph(ContextGraph graph)
     });
 }
 
-// ??????????????????????????????????????????????????????????
-//  Context Graph - Classes de Dom�nio
-// ??????????????????????????????????????????????????????????
+// ══════════════════════════════════════════════════════════
+//  Context Graph - Classes de Domínio
+// ══════════════════════════════════════════════════════════
 
 enum NodeType
 {
-    Policy,      // Pol�tica ou regra de neg�cio
-    Decision,    // Decis�o tomada
+    Policy,      // Política ou regra de negócio
+    Decision,    // Decisão tomada
     Precedent,   // Precedente estabelecido
-    Evidence,    // Evid�ncia ou justificativa
-    Exception    // Exce��o documentada
+    Evidence,    // Evidência ou justificativa
+    Exception    // Exceção documentada
 }
 
 enum EdgeType
 {
-    BasedOn,        // Decis�o baseada em evid�ncia
-    Supersedes,     // Nova vers�o substitui antiga
-    ExceptionTo,    // Exce��o a uma pol�tica
-    EnforcedBy,     // Aplica��o de pol�tica
-    ExpiredBy,      // Expirada por nova vers�o
-    SupportsPolicy, // Precedente que suporta pol�tica
-    ResultOf        // Resultado de uma decis�o
+    BasedOn,        // Decisão baseada em evidência
+    Supersedes,     // Nova versão substitui antiga
+    ExceptionTo,    // Exceção a uma política
+    EnforcedBy,     // Aplicação de política
+    ExpiredBy,      // Expirada por nova versão
+    SupportsPolicy, // Precedente que suporta política
+    ResultOf        // Resultado de uma decisão
 }
 
 class ContextNode
@@ -459,7 +461,7 @@ class ContextEdge
     public string TargetId { get; set; } = string.Empty;
     public EdgeType Type { get; set; }
     public DateTime ValidFrom { get; set; }
-    public DateTime? ValidUntil { get; set; } // null = ainda v�lido
+    public DateTime? ValidUntil { get; set; } // null = ainda válido
     public Dictionary<string, object> Metadata { get; set; } = new();
 }
 
@@ -545,9 +547,9 @@ class ContextGraph
     }
 }
 
-// ??????????????????????????????????????????????????????????
+// ══════════════════════════════════════════════════════════
 //  Context Graph Plugin - Ferramentas para IA
-// ??????????????????????????????????????????????????????????
+// ══════════════════════════════════════════════════════════
 
 class ContextGraphPlugin
 {
@@ -559,14 +561,14 @@ class ContextGraphPlugin
     }
 
     /// <summary>
-    /// Consulta pol�ticas ativas para uma categoria espec�fica
+    /// Consulta políticas ativas para uma categoria específica
     /// </summary>
-    [KernelFunction, Description("Consulta pol�ticas VIGENTES (n�o expiradas) para uma categoria espec�fica como 'discount', 'approval', etc.")]
+    [KernelFunction, Description("Consulta políticas VIGENTES (não expiradas) para uma categoria específica como 'discount', 'approval', etc.")]
     public string QueryActivePolicies(
-        [Description("Categoria da pol�tica (ex: 'discount'). Use 'all' para todas as categorias")]
+        [Description("Categoria da política (ex: 'discount'). Use 'all' para todas as categorias")]
         string category = "all")
     {
-        Console.WriteLine($"   ?? Context Graph: QueryActivePolicies(category: '{category}')");
+        Console.WriteLine($"   🔧 Context Graph: QueryActivePolicies(category: '{category}')");
 
         var activePolicies = _graph.GetActiveNodes(NodeType.Policy);
 
@@ -601,14 +603,14 @@ class ContextGraphPlugin
     }
 
     /// <summary>
-    /// Busca precedentes relevantes baseado em crit�rios
+    /// Busca precedentes relevantes baseado em critérios
     /// </summary>
-    [KernelFunction, Description("Busca precedentes hist�ricos relevantes baseado em segmento de cliente, tipo de desconto ou outros crit�rios")]
+    [KernelFunction, Description("Busca precedentes históricos relevantes baseado em segmento de cliente, tipo de desconto ou outros critérios")]
     public string QueryPrecedents(
         [Description("Termo de busca para filtrar precedentes (ex: 'VIP', 'B2B', 'volume')")]
         string searchTerm)
     {
-        Console.WriteLine($"   ?? Context Graph: QueryPrecedents(searchTerm: '{searchTerm}')");
+        Console.WriteLine($"   🔧 Context Graph: QueryPrecedents(searchTerm: '{searchTerm}')");
 
         var precedents = _graph.GetAllNodes()
             .Where(n => n.Type == NodeType.Precedent)
@@ -639,26 +641,26 @@ class ContextGraphPlugin
     }
 
     /// <summary>
-    /// Rastreia cadeia de decis�o completa para entender o "porqu�"
+    /// Rastreia cadeia de decisão completa para entender o "porquê"
     /// </summary>
-    [KernelFunction, Description("Rastreia a cadeia causal completa de uma decis�o, mostrando evid�ncias, pol�ticas aplicadas e exce��es")]
+    [KernelFunction, Description("Rastreia a cadeia causal completa de uma decisão, mostrando evidências, políticas aplicadas e exceções")]
     public string TraceDecisionChain(
-        [Description("ID da decis�o ou ordem para rastrear (ex: 'decision-order-1234', 'policy-b2b-2024')")]
+        [Description("ID da decisão ou ordem para rastrear (ex: 'decision-order-1234', 'policy-b2b-2024')")]
         string nodeId)
     {
-        Console.WriteLine($"   ?? Context Graph: TraceDecisionChain(nodeId: '{nodeId}')");
+        Console.WriteLine($"   🔧 Context Graph: TraceDecisionChain(nodeId: '{nodeId}')");
 
         var node = _graph.GetNode(nodeId);
         if (node == null)
         {
             return JsonSerializer.Serialize(new
             {
-                error = $"N� '{nodeId}' n�o encontrado",
+                error = $"Nó '{nodeId}' não encontrado",
                 availableNodes = _graph.GetAllNodes().Select(n => n.Id).ToList()
             });
         }
 
-        // Rastrear evid�ncias (BasedOn)
+        // Rastrear evidências (BasedOn)
         var evidences = _graph.GetEdgesFrom(nodeId)
             .Where(e => e.Type == EdgeType.BasedOn)
             .Select(e => _graph.GetNode(e.TargetId))
@@ -666,7 +668,7 @@ class ContextGraphPlugin
             .Select(n => new { n!.Id, n.Title, n.Content, n.Metadata })
             .ToList();
 
-        // Rastrear pol�ticas relacionadas
+        // Rastrear políticas relacionadas
         var policies = _graph.GetEdgesFrom(nodeId)
             .Where(e => e.Type == EdgeType.ExceptionTo || e.Type == EdgeType.EnforcedBy)
             .Select(e => new
@@ -709,27 +711,27 @@ class ContextGraphPlugin
     }
 
     /// <summary>
-    /// Verifica validade temporal de uma pol�tica em um ponto no tempo
+    /// Verifica validade temporal de uma política em um ponto no tempo
     /// </summary>
-    [KernelFunction, Description("Verifica se uma pol�tica estava v�lida em uma data espec�fica e mostra seu hist�rico de evolu��o")]
+    [KernelFunction, Description("Verifica se uma política estava válida em uma data específica e mostra seu histórico de evolução")]
     public string CheckPolicyValidity(
-        [Description("Segmento da pol�tica para verificar (ex: 'B2B', 'VIP')")]
+        [Description("Segmento da política para verificar (ex: 'B2B', 'VIP')")]
         string segment,
         [Description("Data para verificar no formato YYYY-MM-DD. Use 'now' para data atual")]
         string dateString = "now")
     {
-        Console.WriteLine($"   ?? Context Graph: CheckPolicyValidity(segment: '{segment}', date: '{dateString}')");
+        Console.WriteLine($"   🔧 Context Graph: CheckPolicyValidity(segment: '{segment}', date: '{dateString}')");
 
         DateTime checkDate = dateString == "now" ? DateTime.UtcNow : DateTime.Parse(dateString);
 
-        // Encontrar pol�ticas do segmento
+        // Encontrar políticas do segmento
         var segmentPolicies = _graph.GetAllNodes()
             .Where(n => n.Type == NodeType.Policy)
             .Where(n => n.Metadata.TryGetValue("segment", out var seg) &&
                        seg.ToString()!.Equals(segment, StringComparison.OrdinalIgnoreCase))
             .ToList();
 
-        // Para cada pol�tica, verificar validade temporal
+        // Para cada política, verificar validade temporal
         var policyHistory = segmentPolicies.Select(p =>
         {
             var expirationEdges = _graph.GetEdgesFrom(p.Id)
